@@ -87,7 +87,7 @@ The input file, `model.config' consists of lines to construct our neural network
 0
 256
 ```
-1st line is for probability of dropout layer, 20 % data will be dropped after every dense layer (or linear classifier layer).
+Adding comments on formatting of model.config file: 1st line is for probability of dropout layer, 20 % data will be dropped after every dense layer (or linear classifier layer).
 2nd line means for feature size (2 x 2 x 2) with 16 features for 1st CNN layer.
 3rd line indicates the feature size (2 x 2 x 2) with 16 features for 2nd CNN layer. Zero size means that we do not use 2nd CNN layer.
 4th line is stride size for average pooling layer after 2nd CNN layer. Zero means no pooling layer after 2nd CNN layer.
