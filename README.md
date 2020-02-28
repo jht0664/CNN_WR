@@ -212,4 +212,4 @@ Following finite-size scaling equation, `N^(-1/(3*v))` where v = 0.63012 for the
 
 Now, you are ready to make data and train ML models for different concentrations to get the critical point.
 
-Welcome to machine learning world in Physics!
+# Welcome to machine learning world in Physics!
