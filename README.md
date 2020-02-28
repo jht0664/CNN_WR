@@ -59,12 +59,12 @@ When you prepare those `grid.${idx}.npy` files with a variety of density,
  make a list of files in target.list which has two columns; density {tab} grid file index `grid.$idx.npy`.
 Then, make dataset files for training, test, and evaluation data, shuffling with random seed *1985*.
 
-The training dataset should contain 3d images at two densities; 0.5 and 1.0. 
-Rest of 3d images at other densities will be in evaluation file.
+The training dataset should contain 3d images at two densities; 0.5 and 1.0. Rest of 3d images at other densities will be in evaluation file. Also, I employed periodic boundary condition padding (1x1x1) to avoid edge effect when training ML models. Thus, the final 3d images is 12 x 12 x 12 by adding paddings on 6 faces; left, right, top, bottom, front, and back. 
 ```
 > python ~/new_WR/script/machine/block.py -i target.list -ipf grid -s1 0.5 -s2 1.0 -prop 0.0 -nb 1 -seed 1985 -ng 10 -nbe 1 -ne 1
 ```
 input file: `target.list, grid.0.npy, grid.1.npy, ..., grid.5100.npy` | output file: `train.0.cat.npy, train.0.coord.npy, train.0.temp.npy, eval.0.coord.npy, eval.0.temp.npy`
+
 
 ### CNN network model training
 
@@ -139,5 +139,5 @@ Done: construct machine learning model
 
 input file: `train.0.coord.npy, train.0.temp.npy, train.0.cat.npy` for a set of 3d images, density of each image, and category class of each image | output file: `model.h5` for weights and bias for our ML model in the format of .h5.
 
-
+### prediction of phase transition density
 
