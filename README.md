@@ -97,6 +97,8 @@ Next i-th lines will give additional dense layers.
 No more line will stop constructing neural network by adding output layer with SoftMax activation function.
 I refer my article about details of CNN model.
 
+It is the time to train our ML model. Note that the seed will be used to randomly initialize weights and biases. Although 3d images of input .npy files has the size of 15 x 15 x 15 including padding, I already consider adding sizes with 13 x 13 x 13 grids in argument.  
+
 ```
 > python ../machine/train.py -i train.0 -ng 13 -config model.config -seed 1985 -o model.h5
 construct machine learning model by model.config.0 file
