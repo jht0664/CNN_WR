@@ -50,7 +50,7 @@ For this case, we will assign 3d coordinates on 10 x 10 x 10 grids (to be close 
 
 input file: super.gro | output file: grid.npy -> size (100 x 10 x 10 x 10)
 
-## C. Convolutional Neural Network (CNN) to predict phase transition points
+## C. Convolutional Neural Network (CNN)
 
 ### Make dataset as ML inputs
 
