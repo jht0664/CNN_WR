@@ -139,5 +139,5 @@ Done: construct machine learning model
 
 input file: `train.0.coord.npy, train.0.temp.npy, train.0.cat.npy` for a set of 3d images, density of each image, and category class of each image | output file: `model.h5` for weights and bias for our ML model in the format of .h5.
 
-### prediction of phase transition density
+### Prediction of phase transition density
 
