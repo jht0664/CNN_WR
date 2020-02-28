@@ -69,9 +69,12 @@ input file: target.list, grid.0.npy, grid.1.npy, ..., grid.5100.npy | output fil
 ### CNN network model training
 
 For the sake of time, I upload my dataset on Google Drive for while.
-In this tutorial, we are going to use datasets at 0.125 concentration with total 2048 particles (e.g. conc0.125_n2048 folder)  
-Note that folder sizes would be at least from 300 MB to 2.0 GB. 
+In this tutorial, we are going to use datasets at 0.125 concentration with total 2048 particles.  
+Please download 'conc0.125_n2048' folder in the following link of Google Drive.
+Note that any folder size would be at least from 300 MB to 2.0 GB. 
 
 https://drive.google.com/drive/folders/12hfoGuFf3DwGLALJ9O-m7221JZTT7ozE?usp=sharing
 
+Again, from this part, we are going to start N=2048 system unlike previous example N=1024 system.
+python ../machine/machine33.py -i train -ng 10 -config model.config -o model.h5
 
