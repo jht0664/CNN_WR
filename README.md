@@ -48,7 +48,7 @@ For this case, we will assign 3d coordinates on 10 x 10 x 10 grids (to be close 
 
 > python ../grid/interpolate.py -i super.gro -g 10 -s 2 -itp three-states -n_ensembles 100 -o grid
 
-input file: super.gro | output file: grid.npy -> size (100 x 10 x 10x 10)
+input file: super.gro | output file: grid.npy -> size (100 x 10 x 10 x 10)
 
 ## C. Convolutional Neural Network (CNN) to predict phase transition points
 
@@ -66,10 +66,12 @@ Rest of 3d images at other densities will be in evaluation file.
 
 input file: target.list, grid.0.npy, grid.1.npy, ..., grid.5100.npy | output file: train.0.cat.npy, train.0.coord.npy, train.0.temp.npy, eval.0.coord.npy, eval.0.temp.npy
 
+### CNN network model training
+
 For the sake of time, I upload my dataset on Google Drive for while.
 In this tutorial, we are going to use datasets at 0.125 concentration with total 2048 particles (e.g. conc0.125_n2048 folder)  
+Note that folder sizes would be at least from 300 MB to 2.0 GB. 
 
 https://drive.google.com/drive/folders/12hfoGuFf3DwGLALJ9O-m7221JZTT7ozE?usp=sharing
 
-### CNN network model training
 
