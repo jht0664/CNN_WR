@@ -141,5 +141,36 @@ Done: construct machine learning model
 
 input file: `train.0.coord.npy, train.0.temp.npy, train.0.cat.npy` for a set of 3d images, density of each image, and category class of each image | output file: `model.h5` for weights and bias for our ML model in the format of .h5.
 
-### Prediction of phase transition density
+### Phase prediction on evaluation dataset
 
+This program support phase prediction with some dataset in serial to avoid loading large file size. 
+Because I split all evaluation data to two files, we have two differen files, `eval.0.${coord/temp}.npy` and `eval.1.${coord/temp}.npy`.
+Using `-nf 2` for two files and `-ne` and `-ng` to determine the input data size, 
+ we can predict the phase transition at a given concentration.
+```
+> python ../machine/predict.py -m model.h5 -i eval -nf 2 -ne 1 -ng 13 -o model.result
+ input arguments: Namespace(args=[], input='eval', model='model.h5', n_ensembles=1, n_files=2, n_grids=13, output='model.result')
+Using TensorFlow backend.
+ done with making filter pdb files
+ load 0-th eval data file to predict Tc
+ load 1-th eval data file to predict Tc
+ you have 49 temperatures on your data
+Done: get result of evaluation data
+```
+input files: `eval.0.{coord/temp}.npy and eval.1.{coord/temp}.npy` | output files: `model.result.npy, model.h5.filter.{0-15}.pdb` 
+`model.h5.filter.{0-15}.pdb` are the .gro file for feature 3d map with optimized weight and bias. Use VMD software to visualize.
+
+## D. Estimation of phase transition point
+
+### Fit sigmoid function 
+We use the probability of phase w.r.t density in `model.result.npy`, then fit with sigmoid function.
+The density that has 50% probability of phase will be phase transition point; as you can see below, transition point is 0.82357 for N=2048 system with 0.125 concentration.
+```
+> python ../machine/plot.py -i model.result.npy -o model.result.png
+ input arguments: Namespace(args=[], criteria=0.5, input='model.result.npy', output='model.result.png')
+Predicted Tc (Prob=0.5) = 0.82357
+```
+input file: `model.result.npy` | output files: `model.result.npy`, `model.result.png`
+To check fitting graph and data points, see `model.result.png`
+
+### 
