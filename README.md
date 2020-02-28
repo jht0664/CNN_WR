@@ -164,13 +164,52 @@ input files: `eval.0.{coord/temp}.npy and eval.1.{coord/temp}.npy` | output file
 
 ### Fit sigmoid function 
 We use the probability of phase w.r.t density in `model.result.npy`, then fit with sigmoid function.
-The density that has 50% probability of phase will be phase transition point; as you can see below, transition point is 0.82357 for N=2048 system with 0.125 concentration.
+The density that has 50% probability of phase will be phase transition point; as you can see below, 
+ transition point is 0.82357 for N=2048 system with 0.125 concentration. 
+ To check fitting graph and data points, open `model.result.png` in image viewer.
+
 ```
 > python ../machine/plot.py -i model.result.npy -o model.result.png
  input arguments: Namespace(args=[], criteria=0.5, input='model.result.npy', output='model.result.png')
 Predicted Tc (Prob=0.5) = 0.82357
 ```
 input file: `model.result.npy` | output files: `model.result.npy`, `model.result.png`
-To check fitting graph and data points, see `model.result.png`
 
-### 
+### Optimize feature map size
+After this part, I will explain how to process and get numbers because you need to make pipeline to gather all datas.
+Until this step, we obtained single data of phase transition density for a certain model (2x2x2 feature size for 1st CNN layer).
+
+To optimize feature map size, you need to vary feature sizes from 2 to the half of #grid.
+Then, you will get following table for N=2048 systems when we use 13 grids:
+
+| feature size  | Phase transition density |
+| ------------- | ------------- |
+| 2 | 0.80697 |
+| 3 | 0.80231 |
+| 4 | 0.79924 |
+| 5 | 0.80433 |
+| 6 | 0.81432 |
+
+All numbers are averaged by 100 random initialization on our ML models.
+Because of U-shape of phase transition densities w.r.t feature map size, optimal feature size is chosen by minimum transition density.
+
+### Extrpolate phase transition point using finite-size scaling 
+
+Now, we need to consider finite size effect on phase behavior.
+Think about real separation happends in microscopic system, but out simulation system is too tiny to simulate, which gives bias on predicted transition point.
+To correct this, we need to extrapolate phase transition for an imaginary system with infinity particles.
+
+For example, following tabls is a result of 0.125 concentration of A with different system size: 
+| # particles in system  | Phase transition density |
+| ------------- | ------------- |
+| 1024 | 0.80283	|
+| 2048 | 0.79924	|
+| 4069 | 0.82926	|
+| 8192 | 0.83698 |
+
+Following finite-size scaling equation, `N^(-1/(3*v))` where v = 0.63012 for the critical exponent of Ising lattice model,
+ you can get the number I reported in article: 0.8523 transition point for 0.125 concentration.
+
+Now, you are ready to make data and train ML models for different concentrations to get the critical point.
+
+Welcome to machine learning world in Physics!
