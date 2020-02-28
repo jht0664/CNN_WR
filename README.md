@@ -71,7 +71,7 @@ input file: `target.list, grid.0.npy, grid.1.npy, ..., grid.5100.npy` | output f
 For the sake of time, I upload my dataset on Google Drive for while.
 In this tutorial, we are going to use datasets at 0.125 concentration with total 2048 particles.  
 Please download `conc0.125_n2048` folder in the following link of Google Drive.
-Then, move the 7 files to your `tutorial` folder
+Then, move the 7 files to your `tutorial` folder.
 Note that any folder size would be at least from 300 MB to 2.0 GB. 
 
 https://drive.google.com/drive/folders/12hfoGuFf3DwGLALJ9O-m7221JZTT7ozE?usp=sharing
