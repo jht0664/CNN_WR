@@ -3,11 +3,11 @@ Convolutional Neural Network prediction for the phase behavior of three-dimensio
 
 # Tutorial from A to Z
 ## A. generate an initial coordinate
-move to the tutorial folder 
+### move to the tutorial folder 
 
 > cd tutorial
 
-run generator for initial coordinate of random configuration of WR particles;
+### run generator for initial coordinate of random configuration of WR particles;
  in this example, the program tries to insert 512 A particles and 512 B particles (radius = 1*sigma) 
  to satisfy number density 0.5 up to 1,000,000 insertion attempts
 
@@ -20,7 +20,7 @@ You can see the text file, composite.ic, for initial coordinate.
 
 Note that positions should be saved in double-precision for accuracy. 
 
-Run Monte Carlo (MC) Simulation for WR model up to 10^6 MC steps per particles.
+### Run Monte Carlo (MC) Simulation to equilibrate system
 
 For the Fortran 95 version of the program, take a look at README file in ../init_mc/mcrun_v2.tar
 
@@ -34,6 +34,7 @@ While we run MC with double precision coordinates,
  we take equilibrium system with single-precision file, confout.gro, for next step.
 
 ## B. Grid interpolation
+### Generate SuperCell
 We are going to interpolate 3D coordinates of WR into 3D grid matrix (or lattice, 3D image).
 
 Currently, the built-in grid interpolation function in Python Scipy library has NaN issue on edge interpolation.
@@ -46,7 +47,7 @@ In details of method, please see my article.
 
 For convenience, I upload super.gro file for the supercell coordinate.
 
-Run grid-interpolation program;
+### Run grid-interpolation program;
 
 For this case, we will assign 3d coordinates on 10 x 10 x 10 grids (to be close to total number of particles, N=1024),
  and augment the 3d image by a factor of 100 using transformations (translation, replacement of axis, and flipping, etc).
@@ -58,6 +59,8 @@ input file: super.gro
 output file: grid.npy -> size (100 x 10 x 10x 10)
 
 ## C. Convolutional Neural Network
+### Make dataset as ML inputs
+
 To do find phase boundary at a fixed concentration, you need to manipulate many grid.npy files at different densities.
 
 When you prepare those grid.${idx}.npy files with a variety of density, 
@@ -71,8 +74,8 @@ When you prepare those grid.${idx}.npy files with a variety of density,
 
 Then, make dataset files for training, test, and evaluation data, shuffling with random seed 1985.
 
-The Training dataset should contain 3d images at two densities; 0.5 and 1.0
 
+The Training dataset should contain 3d images at two densities; 0.5 and 1.0
 Rest of 3d images at other densities will be in evaluation file.
 
 > python ~/new_WR/script/machine/block.py -i target.list -ipf grid -s1 0.5 -s2 1.0 -prop 0.0 -nb 1 -seed 1985 -ng 10 -nbe 1 -ne 1
