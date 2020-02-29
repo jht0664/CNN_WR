@@ -67,7 +67,7 @@ Then, make dataset files for training, test, and evaluation data, shuffling with
 
 The training dataset should contain 3d images at two densities; 0.5 and 1.0. Rest of 3d images at other densities will be in evaluation file. Also, I employed periodic boundary condition padding (1x1x1) to avoid edge effect when training ML models. Thus, the final 3d images is 12 x 12 x 12 by adding paddings on 6 faces; left, right, top, bottom, front, and back. 
 ```
-> python ~/new_WR/script/machine/block.py -i target.list -ipf grid -s1 0.5 -s2 1.0 -prop 0.0 -nb 1 -seed 1985 -ng 10 -nbe 1 -ne 1
+> python ../machine/block.py -i target.list -ipf grid -s1 0.5 -s2 1.0 -prop 0.0 -nb 1 -seed 1985 -ng 10 -nbe 1 -ne 1
 ```
 input file: `target.list, grid.0.npy, grid.1.npy, ..., grid.5100.npy` | output file: `train.0.cat.npy, train.0.coord.npy, train.0.temp.npy, eval.0.coord.npy, eval.0.temp.npy`
 
