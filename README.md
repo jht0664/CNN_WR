@@ -39,7 +39,11 @@ To aovid this, we need a **super cell** with a factor of 2 on axis or (2 x 2 x 2
 
 When applying grid-interpolation on super cell, we remove edges off, then only 1 x 1 x 1 cell 3d image will be left.
 In details of method, please see my article. 
-For convenience, I upload `super.gro` file for the supercell coordinate.
+For convenience, I put example of command line for GROMACS and upload `super.gro` file for the supercell coordinate.
+I refer GROMACS manual for `gmx genconf`: http://manual.gromacs.org/documentation/current/onlinehelp/gmx-genconf.html
+```
+$your_gromacs_program_gmx genconf -f "onfout.gro -nbox 2 2 2 -o super.gro
+```
 
 ### Run grid-interpolation program;
 
