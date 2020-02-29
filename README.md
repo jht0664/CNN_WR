@@ -8,7 +8,7 @@ Convolutional Neural Network prediction for the phase behavior of three-dimensio
 > cd tutorial
 ```
 ### Run generator for initial coordinate of random configuration of WR particles;
- in this example, the program tries to insert 512 *A* particles and 512 *B* particles (radius = 1.0 *sigma*) 
+ in this example, the program tries to insert 512 *A* particles and 512 *B* particles (1.0 *sigma* diameter) 
  to satisfy number density 0.5 up to 1,000,000 insertion attempts
 
 output text file, `init.ic`, will be used for Monte Carlo simulation inpute file
