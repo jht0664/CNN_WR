@@ -3,11 +3,11 @@ Convolutional Neural Network prediction for the phase behavior of three-dimensio
 
 # Tutorial from A to Z
 ## A. generate an initial coordinate
-### move to the tutorial folder 
+### Move to the tutorial folder 
 ```
 > cd tutorial
 ```
-### run generator for initial coordinate of random configuration of WR particles;
+### Run generator for initial coordinate of random configuration of WR particles;
  in this example, the program tries to insert 512 *A* particles and 512 *B* particles (radius = 1.0 *sigma*) 
  to satisfy number density 0.5 up to 1,000,000 insertion attempts
 
@@ -212,4 +212,4 @@ Following finite-size scaling equation, `N^(-1/(3*v))` where v = 0.63012 for the
 
 Now, you are ready to make data and train ML models for different concentrations to get the critical point.
 
-# Welcome to the machine learning world in Physics!
+## Welcome to the machine learning world in Physics!
