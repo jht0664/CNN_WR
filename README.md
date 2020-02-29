@@ -2,7 +2,7 @@
 Convolutional Neural Network prediction for the phase behavior of three-dimensional Widom-Rowlinson (WR) Model
 
 # Tutorial from A to Z
-You can see the details of WR model: https://aip.scitation.org/doi/full/10.1063/1.5033958
+The purpose of this tutorial is to briefly learn how to make data, train ML models, and predict phase transition point at once. You can see the details of WR model, https://aip.scitation.org/doi/full/10.1063/1.5033958, machine learning application, *(in preparation)*.  
 
 ## A. generate an initial coordinate
 ### Move to the tutorial folder 
