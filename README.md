@@ -44,7 +44,7 @@ In details of method, please see my article.
 For convenience, I put example of command line for GROMACS and upload `super.gro` file for the supercell coordinate.
 I refer GROMACS manual for `gmx genconf`: http://manual.gromacs.org/documentation/current/onlinehelp/gmx-genconf.html
 ```
-$your_gromacs_program_gmx genconf -f "onfout.gro -nbox 2 2 2 -o super.gro
+$your_gromacs_program_gmx genconf -f confout.gro -nbox 2 2 2 -o super.gro
 ```
 
 ### Run grid-interpolation program;
