@@ -97,7 +97,7 @@ gro_color=np.zeros(traj.top.n_atoms)
 #gro_color[idx_a] = 1. # a is white like 1., b is black like 0. for Polymer_blends
 # for new version interpolation, a = white, b=black, empty=gray?
 gro_color[idx_a] = 1.  
-gro_color[idx_a] = -1. 
+gro_color[idx_b] = -1. 
 
 print(" ... interpolating ...")
 # make mesh grid
