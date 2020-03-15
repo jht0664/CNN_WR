@@ -223,7 +223,7 @@ def user_model(config_file):
 #cnn_model = modeling_ver0() # 1,082 k parameters: 74s/epoch, 3 epoch -> 97.4% accuracy, 4 epoch -> 99.7%
 cnn_model = user_model(args.config_model)
 history = cnn_model.fit(train_coord_sets, train_cat_sets,
-                    batch_size=200,
+                    batch_size=50,
                     epochs=30,
                     verbose=1,
                     shuffle=True)
