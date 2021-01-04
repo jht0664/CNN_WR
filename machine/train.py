@@ -13,11 +13,12 @@
 # ver 3.1 - add pbc boundary for "valid" padding 
 #			and save opt. CNN filters for reporting characteristics of phase separation on 3/27/2019
 # ver 3.3 - add random_seed
-# ver 3.3 - limit the usage for Widom-Rowlinson model
+# ver 3.4 - limit the usage for two training set and two classes
+# ver 3.5 - back to multiple classes with argumnets; n_class and loss_fn
 import argparse
 parser = argparse.ArgumentParser(
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
-	description='supervised machine learning for phase separation of Widom-Rowlinson model')
+	description='supervised machine learning for phase separation of two phases')
 ## args
 parser.add_argument('-i', '--input', default='train.0', nargs='?',  
 	help='prefix of input .npy train file like $input.$i.(coord/temp/cat).npy')
@@ -27,13 +28,19 @@ parser.add_argument('-ng', '--n_grids', default=15, nargs='?', type=int,
 	help='# grids in input_prefix.coord.npy ')
 parser.add_argument('-config', '--config_model', default='model.config', nargs='?',
 	help='test mode for the structure of network layers (format: dropout \n conv1 \n conv2 \n pool \n dense*)')
+parser.add_argument('-nb', '--nbatch', default=50, nargs='?', type=int,
+        help='# images per epoch to train')
+parser.add_argument('-nc', '--n_class', default=2, nargs='?', type=int,
+        help='# classes to train')
+parser.add_argument('-loss', '--loss_fn', default='binary_crossentropy', nargs='?',
+        help='loss function (binary_crossentropy/categorical_crossentropy)')
 parser.add_argument('-seed', '--seed', default=-1, nargs='?', type=int,
 	help='set random seed (negative or zero value means random without seed)')
 parser.add_argument('-o', '--output', default='model.h5', nargs='?',
 	help='output network model file (.h5)')
 
 parser.add_argument('args', nargs=argparse.REMAINDER)
-parser.add_argument('-v', '--version', action='version', version='%(prog)s 3.1')
+parser.add_argument('-v', '--version', action='version', version='%(prog)s 3.4')
 # read args
 args = parser.parse_args()
 # check args
@@ -70,7 +77,7 @@ train_cat_sets = np.load(args.input+'.cat.npy')
 if train_cat_sets.shape[0] != n_sets:
 	raise ValueError(" inconsistent size for cat_sets with coord_sets, {} != {}".format(
 		train_cat_sets.shape[0],n_sets))
-train_cat_sets = keras.utils.to_categorical(train_cat_sets, 2)
+train_cat_sets = keras.utils.to_categorical(train_cat_sets, args.n_class) 
 
 train_temp_sets  = np.load(args.input+'.temp.npy')
 if train_temp_sets.shape[0] != n_sets:
@@ -211,10 +218,10 @@ def user_model(config_file):
 	if n_dense == 0:
 		print(" pass any Dense layer")
 	# add output layer
-	model.add(Dense(2, activation='softmax'))
+	model.add(Dense(args.n_class, activation='softmax'))
 	model.summary()
 	print("config model = {}".format(config_array))
-	model.compile(loss='binary_crossentropy',
+	model.compile(loss=args.loss_fn,
 	              optimizer="adam",
 	              metrics=['accuracy'])
 	return model
@@ -223,7 +230,7 @@ def user_model(config_file):
 #cnn_model = modeling_ver0() # 1,082 k parameters: 74s/epoch, 3 epoch -> 97.4% accuracy, 4 epoch -> 99.7%
 cnn_model = user_model(args.config_model)
 history = cnn_model.fit(train_coord_sets, train_cat_sets,
-                    batch_size=50,
+                    batch_size=args.nbatch,
                     epochs=30,
                     verbose=1,
                     shuffle=True)
@@ -244,7 +251,7 @@ if 'NONE' not in args.input_test:
 		if test_cat_sets.shape[0] != n_sets:
 			raise ValueError(" inconsistent size for cat_sets with coord_sets, {} != {}".format(
 				test_cat_sets.shape[0],n_sets))
-		test_cat_sets = keras.utils.to_categorical(test_cat_sets, 2)
+		test_cat_sets = keras.utils.to_categorical(test_cat_sets, args.n_class)
 
 		test_temp_sets  = np.load(args.input_test+'.temp.npy')
 		if test_temp_sets.shape[0] != n_sets:

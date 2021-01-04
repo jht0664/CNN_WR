@@ -8,12 +8,12 @@ path_py='/home/htjung/upload_github/CNN_WR/'        # path for CNN_WR github dir
 path_model='/home/htjung/upload_github/CNN_WR/model/' # path for model.config.* files
 run_gmx='gmx'         # Gromacs command
 
-n_copies_train=100    # ensembles for training set, 0 = min, -1 = max
-n_copies_eval=1       # ensembles for evaluation set, 0 = min, -1 = max
-temp1=0.5             # traning temp1 or density1
-temp2=1.0             # traning temp2 or density2
-crit=0.02             # valid transition temperature range
-					  #  between temp1+crit and temp1-crit 
+n_copies_train=400    # ensembles for training set, 0 = min, -1 = max
+n_copies_eval=10      # ensembles for evaluation set, 0 = min, -1 = max
+temp1=1.0             # training temp1 or density1
+temp2=4.0             # training temp2 or density2
+crit=0.3              # valid transition temperature range
+					  #  between temp1+crit and temp1-crit   
 n_grids=13            # #grids on axes
 n_files_train=1       # files for training data
 n_files_eval=2        # files for evaluation data
@@ -105,15 +105,19 @@ case $var_step in
 		if [ -f "grid."$it".npy" ]; then
 			continue
 		fi
-		$run_gmx genconf -f "../output/confout."$it".gro" -nbox 2 2 2 -o "train/super."$it".gro"
-		python $path_py"grid/interpolate.py" -i "train/super."$it".gro" -g $n_grids -s 2 -itp three-states -n_ensembles $n_copies_train -o "grid."$it
+		# all atoms wrap within cell
+		echo 0 | $run_gmx trjconv -f "../output/confout."$it".gro" -s "../output/confout."$it".gro" -pbc atom -o "train/confout."$it".gro"
+		$run_gmx genconf -f "train/confout."$it".gro" -nbox 2 2 2 -o "train/super."$it".gro"
+		python $path_py"grid/interpolate.py" -name PB -i "train/super."$it".gro" -g $n_grids -s 2 -itp three-states -n_ensembles $n_copies_train -o "grid."$it
 	done
 	for it in "${evalset[@]}"; do
 		if [ -f "grid."$it".npy" ]; then
 			continue
 		fi
-		$run_gmx genconf -f "../output/confout."$it".gro" -nbox 2 2 2 -o "eval/super."$it".gro"
-		python $path_py"grid/interpolate.py" -i "eval/super."$it".gro" -g $n_grids -s 2 -itp three-states -n_ensembles $n_copies_eval -o "grid."$it
+		# all atoms wrap within cell
+		echo 0 | $run_gmx trjconv -f "../output/confout."$it".gro" -s "../output/confout."$it".gro" -pbc atom -o "eval/confout."$it".gro"
+		$run_gmx genconf -f "eval/confout."$it".gro" -nbox 2 2 2 -o "eval/super."$it".gro"
+		python $path_py"grid/interpolate.py" -name PB -i "eval/super."$it".gro" -g $n_grids -s 2 -itp three-states -n_ensembles $n_copies_eval -o "grid."$it
 	done
 	cd ..
 	# returns grid.$i.npy files
@@ -140,9 +144,11 @@ case $var_step in
 			exit 0
 		fi
 	fi
-	mv grid/train*.npy machine/
-	mv grid/eval*.npy  machine/
-	mv grid/test*.npy  machine/
+	if [ -d grid ]; then
+		mv grid/train*.npy machine/
+		mv grid/eval*.npy  machine/
+		mv grid/test*.npy  machine/
+	fi
 	cd machine
 	echo "copy models into machine folder"
 	echo "you should activate tensorflow-gpu like:"
@@ -165,7 +171,7 @@ case $var_step in
 			input_file="train."$i
 			out_model="model."$i_model"."$i".h5"
 			if [ ! -f $out_model ]; then
-			        python $path_py"machine/train.py" -nb 200 -i $input_file -it "test" -ng $n_grids -config $config_file -o $out_model
+			        python $path_py"machine/train.py" -nb 50 -i $input_file -it "test" -ng $n_grids -config $config_file -o $out_model
 			else
 			        echo "already model.h5 exists"
 			        exit 0

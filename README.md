@@ -2,7 +2,8 @@
 Convolutional Neural Network prediction for the phase behavior of three-dimensional Widom-Rowlinson (WR) Model
 
 # Tutorial from A to Z
-The purpose of this tutorial is to briefly learn how to make data, train ML models, and predict phase transition point at once. You can see the details of WR model, https://aip.scitation.org/doi/full/10.1063/1.5033958, machine learning application, *(in preparation)*.  
+The purpose of this tutorial is to briefly learn how to make data, train ML models, and predict phase transition point at once. You can see the details of my work, https://aip.scitation.org/doi/abs/10.1063/5.0014194, Phase behavior of continuous-space systems: A supervised machine learning approach
+J. Chem. Phys. 153, 064904 (2020). 
 
 ## A. generate an initial coordinate
 ### Move to the tutorial folder 
@@ -32,6 +33,10 @@ intput files: `composite.ic, mcrun.inp` | output files: `composite.tmp, composit
 
 While we run MC with double precision coordinates, 
  we take equilibrium system with single-precision file, confout.gro, for next step.
+
+Instead of reproduction of these coordinates, I upload those coordinates in Google Drive. Please feel free to use the tar files of which surfix is `_raw.tar.gz`. In the tar file, `make_init.log` has four columns;the total number of particles, A particle, and B particle, number density, and index of gro files such as `confout.####.gro`. Note that the system has always the same or less B particles then that of A particles although I described the system (more or the same B particles) in my paper. As you know, it should not matter due to symmetry of WR particles. `target.list` is another files with selected columns from `make_init.log`
+
+https://drive.google.com/drive/folders/12hfoGuFf3DwGLALJ9O-m7221JZTT7ozE?usp=sharing
 
 ## B. Grid interpolation
 ### Generate SuperCell

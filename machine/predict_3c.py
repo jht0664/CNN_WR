@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # to load keras model, run evaluation, and get block averages due to copied ensembles
-# ver 2.3 - two classes prediction
+# ver 2.4 - three classes prediction
 import argparse
 parser = argparse.ArgumentParser(
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
@@ -19,7 +19,7 @@ parser.add_argument('-ng', '--n_grids', default=15, nargs='?', type=int,
 parser.add_argument('-o', '--output', default='result.npy', nargs='?',
 	help='output result file (.npy)')
 parser.add_argument('args', nargs=argparse.REMAINDER)
-parser.add_argument('-v', '--version', action='version', version='%(prog)s 2.3')
+parser.add_argument('-v', '--version', action='version', version='%(prog)s 2.4')
 # read args
 args = parser.parse_args()
 # check args
@@ -88,7 +88,9 @@ for i_file in np.arange(args.n_files):
 		n_ensembles_per_files = n_coord_sets
 		total_n_ensembles = int(n_coord_sets*args.n_files)
 		# define arrays
-		cat_sets = np.empty(total_n_ensembles)
+		cat_sets1 = np.empty(total_n_ensembles)
+		cat_sets2 = np.empty(total_n_ensembles)
+		cat_sets3 = np.empty(total_n_ensembles)
 		temp_sets = np.empty(total_n_ensembles)
 	# load temperature
 	temp_iset  = np.load(args.input+'.'+str(i_file)+'.temp.npy')
@@ -97,18 +99,29 @@ for i_file in np.arange(args.n_files):
 			temp_iset.shape[0], n_coord_sets))
 	# prediction
 	pred = cnn_model.predict(coord_iset)
-	cat_iset = pred[:,1] # predicted category [0:1] are located in 1st column
+	#print(pred.shape," <- pred",pred)
+	#print("pred[:,1]",pred[:,0])
+	#print("pred[:,2]",pred[:,1])
+	#print("pred[:,3]",pred[:,3])
+	# predicted category [0:1] are located in 1st colum
+	cat_iset1 = pred[:,0] # probability of prediction for 1st category (mix) are located in 1nd column
+	cat_iset2 = pred[:,1] # probability of prediction for 2st category (sep-lam) are located in 2rd column
+	cat_iset3 = pred[:,2] # probability of prediction for 3st category (sep-p) are located in 3th column
 	#print("size = {} ? {}".format(cat_iset.shape,n_ensembles_per_files))
 	#print(temp_iset)
 	#print(cat_iset.astype(int))
 	# append data
-	cat_sets[i_ensemble:i_ensemble+n_ensembles_per_files] = copy.copy(cat_iset)
+	cat_sets1[i_ensemble:i_ensemble+n_ensembles_per_files] = copy.copy(cat_iset1)
+	cat_sets2[i_ensemble:i_ensemble+n_ensembles_per_files] = copy.copy(cat_iset2)
+	cat_sets3[i_ensemble:i_ensemble+n_ensembles_per_files] = copy.copy(cat_iset3)
 	temp_sets[i_ensemble:i_ensemble+n_ensembles_per_files] = copy.copy(temp_iset)
 	i_ensemble=i_ensemble+n_ensembles_per_files
 
 # swipe memory
 del coord_iset
-del cat_iset
+del cat_iset1
+del cat_iset2
+del cat_iset3
 del temp_iset
 
 # result processing
@@ -118,20 +131,34 @@ plt_temp = np.unique(temp_sets)
 #print(plt_temp)
 n_temps  = len(plt_temp)
 print(" you have {} temperatures on your data".format(n_temps))
-plt_cat_mean = np.empty(n_temps)
-plt_cat_std  = np.empty(n_temps)
+plt_cat1_mean = np.empty(n_temps)
+plt_cat1_std  = np.empty(n_temps)
+plt_cat2_mean = np.empty(n_temps)
+plt_cat2_std  = np.empty(n_temps)
+plt_cat3_mean = np.empty(n_temps)
+plt_cat3_std  = np.empty(n_temps)
 for i_temp in range(n_temps):
-	tmp_array = cat_sets[temp_sets == plt_temp[i_temp]]
+	tmp_array1 = cat_sets1[temp_sets == plt_temp[i_temp]]
+	tmp_array2 = cat_sets2[temp_sets == plt_temp[i_temp]]
+	tmp_array3 = cat_sets3[temp_sets == plt_temp[i_temp]]
 	#print("i_temp = {}".format(plt_temp[i_temp]))
 	#print("i_temp cat_sets = {}".format(cat_sets))
-	tmp_array = tmp_array.reshape(-1,args.n_ensembles)
-	avgs = np.average(tmp_array, axis=1) # get average among copied ensembles
+	tmp_array1 = tmp_array1.reshape(-1,args.n_ensembles)
+	tmp_array2 = tmp_array2.reshape(-1,args.n_ensembles)
+	tmp_array3 = tmp_array3.reshape(-1,args.n_ensembles)
+	avgs1 = np.average(tmp_array1, axis=1) # get average among copied ensembles
+	avgs2 = np.average(tmp_array2, axis=1) # get average among copied ensembles
+	avgs3 = np.average(tmp_array3, axis=1) # get average among copied ensembles
 	#print("i_temp result = {}".format(avgs))
-	plt_cat_mean[i_temp] = np.mean(avgs) 
-	plt_cat_std[i_temp] = np.std(avgs)
+	plt_cat1_mean[i_temp] = np.mean(avgs1) 
+	plt_cat2_mean[i_temp] = np.mean(avgs2) 
+	plt_cat3_mean[i_temp] = np.mean(avgs3) 
+	plt_cat1_std[i_temp] = np.std(avgs1)
+	plt_cat2_std[i_temp] = np.std(avgs2)
+	plt_cat3_std[i_temp] = np.std(avgs3)
 
 ## save npy file for plotting
-out=np.column_stack((plt_temp,plt_cat_mean,plt_cat_std))
+out=np.column_stack((plt_temp,plt_cat1_mean,plt_cat1_std,plt_cat2_mean,plt_cat2_std,plt_cat3_mean,plt_cat3_std))
 np.save(args.output,out)
 
 # done

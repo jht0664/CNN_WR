@@ -2,7 +2,7 @@ import numpy as np
 import argparse
 parser = argparse.ArgumentParser(
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
-	description='remove odd data beyond criteria')
+	description='remove odd data for 3c beyond some criteria')
 ## args
 parser.add_argument('-i', '--input', default='fit2.value', nargs='?', 
 	help='input list file of transition densities/temperatures')
@@ -20,13 +20,17 @@ args = parser.parse_args()
 print(" input arguments: {0}".format(args))
 
 list_val=np.loadtxt(args.input)
-b=np.array([])
-for i in np.arange(len(list_val)):
-	if list_val[i] <= args.temp1+args.crit:
-		b=np.append(b,i)
-	if list_val[i] >= args.temp2-args.crit:
-		b=np.append(b,i)
+list_val=list_val.reshape(-1,3)
+b1=np.array([])
+b2=np.array([])
+b3=np.array([])
+for iline in list_val:
+	if (iline[0] <= iline[2]) and (iline[1] >= iline[2]):
+		if (iline[0] > args.temp1+args.crit) and (iline[1] < args.temp2-args.crit):
+			b1=np.append(b1,iline[0])
+			b2=np.append(b2,iline[1])
+			b3=np.append(b3,iline[2])
 
-list_val=np.delete(list_val,b)
-
-print("{:.5f} {:.5f}".format(np.average(list_val),np.std(list_val)))
+print("b1 = {:.5f} {:.5f}".format(np.average(b1),np.std(b1)))
+print("b2 = {:.5f} {:.5f}".format(np.average(b2),np.std(b2)))
+print("b3 = {:.5f} {:.5f}".format(np.average(b3),np.std(b3)))

@@ -16,14 +16,14 @@ parser.add_argument('-g', '--grid', default=15, nargs='?', type=int,
 	help='number of slices on original cell (not super cell)')
 parser.add_argument('-s', '--nsuper', default=2, nargs='?', type=int, 
 	help='super cell scaling of input gro file')
-parser.add_argument('-super_do', '--super_do', action='store_true', 
-	help='make 2x2x2 super cell from input gro file to use grid interpolation (default: OFF)')
+parser.add_argument('-name', '--name', default='WR', nargs='?', 
+	help='model name (WR/PB)')
 parser.add_argument('-itp', '--interp', default='three-states', nargs='?', 
 	help='interpolation method (ex. grid/rbf and nearest/linear/cubic/three-states')
 parser.add_argument('-n_ensembles', '--n_ensembles', default=0, nargs='?', type=int, 
 	help='generate # ensembles by trans, flip, and switch axes (randomly #generated up to # you set, but 0 = min.#, negative = max.#)')
 parser.add_argument('-seed', '--seed', default=1985, nargs='?', type=int,
-	help='random seed to shuffle for test sets and block sets')
+	help='random seed to shuffle for augmentation')
 parser.add_argument('-debug', '--debug', action='store_true', 
 	help='(debug) output gro file for interpolation result')
 parser.add_argument('-o', '--output', default='confout.gro', nargs='?', 
@@ -46,7 +46,6 @@ import copy
 input_gro_file = args.input
 n_grid = args.grid
 supercell_scale = args.nsuper
-re_supercell = args.super_do
 output_file = args.output
 np.random.seed(args.seed)
 
@@ -64,12 +63,19 @@ if (gro_box[0] != gro_box[1]) or (
 # make color map
 # should be select depending on your model.
 print(" ... making color map ...")
-## As for WR models,
 idx_a = traj.top.select("name A")
 idx_b = traj.top.select("name B")
 gro_color=np.zeros(traj.top.n_atoms)
-gro_color[idx_a] = 0.  
-gro_color[idx_b] = 1. 
+if "WR" in args.name: # for WR model,
+	print(" activate assigning colors for WR model ")
+	gro_color[idx_a] = 0.  
+	gro_color[idx_b] = 1. 
+elif "PB" in args.name: # for PB model
+	print(" activate assigning colors for PB model ")
+	gro_color[idx_a] = 1.  
+	gro_color[idx_b] = -1. 
+else:
+	raise ValueError("wrong model name, args.name")
 
 print(" ... interpolating ...")
 # make mesh grid
@@ -114,7 +120,10 @@ elif 'three' in interp_module:
 		print("we add {} empty particles".format(len(add_xyz)))
 		add_xyz = np.array(add_xyz)
 		add_xyz = add_xyz.reshape(-1,3)
-		add_color = np.repeat(0.5, len(add_xyz))
+		if "WR" in args.name: 
+			add_color = np.repeat(0.5, len(add_xyz))
+		elif "PB" in args.name:
+			add_color = np.repeat(0., len(add_xyz))
 		append_xyz = np.append(gro_xyz,add_xyz)
 		gro_xyz = append_xyz.reshape(-1,3)
 		gro_color = np.append(gro_color,add_color)

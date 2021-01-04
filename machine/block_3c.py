@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+# clean up data set to simple npy files 
 ##############
 # ver 2.1 - coding python by Hyuntae Jung on 2/3/2019
 #           instead of ml_wr.py, we divide several files. 
 # ver 2.2 - add n_ensemble option on 2/21/2019
+# ver 2.3 - modify for 3 classes on 8/13/2019 
 import argparse
 parser = argparse.ArgumentParser(
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
@@ -16,12 +18,14 @@ parser.add_argument('-s1', '--select1', default=0.5, nargs='?', type=float,
 	help='select temperature/density1 (< args.select2) for training set')
 parser.add_argument('-s2', '--select2', default=1.0, nargs='?', type=float, 
 	help='select temperature/density2 (> args.select1) for training set')
+parser.add_argument('-s3', '--select3', default=-1, nargs='?', type=float, 
+	help='select temperature/density3 (select1 < T < select2) for training set')
 parser.add_argument('-prop', '--prop', default=-1.0, nargs='?', type=float, 
 	help='the proportion [0:1] of training set for getting accuracy of modeling (< 0. means nothing test set)')
 parser.add_argument('-nb', '--n_blocks', default=0, nargs='?', type=int,
 	help='# of blocks for training set (zero means no block average sets)')
 parser.add_argument('-nbe', '--n_blocks_eval', default=0, nargs='?', type=int,
-	help='# of blocks for eval set (zero means no block average sets)')
+	help='# of blocks for eval set (due to reduced file size) (zero means no block average sets)')
 parser.add_argument('-net', '--ne_train', default=-1, nargs='?', type=int,
 	help='# of ensembles for train set per grid.npy (-1 to use all)')
 parser.add_argument('-nee', '--ne_eval', default=-1, nargs='?', type=int,
@@ -54,9 +58,10 @@ np.random.seed(args.seed)
 list_file = np.loadtxt(args.input)
 list_temp = np.array(list_file[:,0],dtype=float)
 list_file_idx = np.array(list_file[:,1],dtype=int)
-train_set1 = np.where(list_temp <= args.select1)[0] # indices for temp1 of training
-train_set2 = np.where(list_temp >= args.select2)[0] # indices for temp2 of training
-eval_set = np.delete(np.arange(len(list_file_idx)), np.append(train_set1,train_set2)) # indices for eval
+train_set1 = np.where(list_temp == args.select1)[0] # indices for temp1 of training
+train_set2 = np.where(list_temp == args.select2)[0] # indices for temp2 of training
+train_set3 = np.where(list_temp == args.select3)[0] # indices for temp3 of training
+eval_set = np.delete(np.arange(len(list_file_idx)), np.append(train_set1,np.append(train_set2,train_set3))) # indices for eval
 
 # make train_set and test_set with proportion and shuffle
 if args.prop > 0.0:
@@ -64,19 +69,24 @@ if args.prop > 0.0:
 		raise ValueError("args.prop {} is too high unlike purpose".format(args.prop))
 	n_test1 = int(len(train_set1)*args.prop)
 	n_test2 = int(len(train_set2)*args.prop)
+	n_test3 = int(len(train_set3)*args.prop)
 	np.random.shuffle(train_set1)
 	np.random.shuffle(train_set2)
-	test_set = np.append(train_set1[0:n_test1],train_set2[0:n_test2])
+	np.random.shuffle(train_set3)
+	test_set = np.append(train_set1[0:n_test1],np.append(train_set2[0:n_test2],train_set3[0:n_test3]))
 	train_set1 = train_set1[n_test1:]
 	train_set2 = train_set2[n_test2:]
+	train_set3 = train_set3[n_test3:]
 else:
 	print(" Not make test set")
 	np.random.shuffle(train_set1)
 	np.random.shuffle(train_set2)
+	np.random.shuffle(train_set3)
 	test_set = np.array([],dtype=int)
 
 print("Based on {} list file: ".format(args.input))
-print(" total #train data: {} for temp <= {}, {} for temp >= {}".format(len(train_set1),args.select1,len(train_set2),args.select2))
+print(" total #train data: {} for temp == {}, {} for temp == {}, {} for temp == {}".format(
+	len(train_set1),args.select1,len(train_set2),args.select2,len(train_set3),args.select3))
 print(" #test data: {}".format(len(test_set)))
 print(" #eval data: {}".format(len(eval_set)))
 
@@ -84,18 +94,23 @@ print(" #eval data: {}".format(len(eval_set)))
 if args.n_blocks > 0:
 	remain_1 = len(train_set1)%args.n_blocks
 	remain_2 = len(train_set2)%args.n_blocks
+	remain_3 = len(train_set3)%args.n_blocks
 	print(" trim ({},{}) elements from two training sets for equal size of block sets".format(remain_1,remain_2))
 	if remain_1 > 0:
 		train_set1 = train_set1[remain_1:]
 	if remain_2 > 0:
 		train_set2 = train_set2[remain_2:]
+	if remain_3 > 0:
+		train_set3 = train_set3[remain_3:]
 	block_sets1 = np.split(train_set1,args.n_blocks)
 	block_sets2 = np.split(train_set2,args.n_blocks)
+	block_sets3 = np.split(train_set3,args.n_blocks)
 	print(" #blocks for training set = {}".format(args.n_blocks))
 else:
 	print(" no blocks for training sets")
 	block_sets1 = train_set1
 	block_sets2 = train_set2
+	block_sets3 = train_set3
 
 # step3: make blocks for evaluation sets:
 if args.n_blocks_eval > 0:
@@ -118,14 +133,14 @@ def make_npy_files_mode_ver0(mode, i_block, idx_array, input_prefix, output_pref
 	# As for eval set, we only use original grid info excluding ensembles or copies by trans, rot, and flip.
 	n_data = len(idx_array)
 	if gen_cat:
-		set_coord=np.empty((n_data,n_ensembles*pow(args.n_grids,3)))
-		set_temp=np.empty((n_data,n_ensembles))
-		set_cat=np.empty((n_data,n_ensembles))
-		esti_n_sets = n_ensembles
+		esti_n_sets = args.ne_train
+		set_coord=np.empty((n_data,esti_n_sets*pow(args.n_grids,3)))
+		set_temp=np.empty((n_data,esti_n_sets))
+		set_cat=np.empty((n_data,esti_n_sets))
 	else: # eval case
-		set_coord=np.empty((n_data,n_eval_ensembles*pow(args.n_grids,3)))
-		set_temp=np.empty((n_data,n_eval_ensembles))
-		esti_n_sets = n_eval_ensembles
+		esti_n_sets = args.ne_eval
+		set_coord=np.empty((n_data,esti_n_sets*pow(args.n_grids,3)))
+		set_temp=np.empty((n_data,esti_n_sets))
 	print(" collecting sets for {} mode".format(mode))
 	# run each sample
 	for i_data in np.arange(n_data):
@@ -138,11 +153,11 @@ def make_npy_files_mode_ver0(mode, i_block, idx_array, input_prefix, output_pref
 			raise ValueError("{} file does not found. Please remove the filename in list file".format(filename))
 		# check #ensembles
 		n_sets=int(len(tmp_data)/args.n_grids/args.n_grids/args.n_grids)
-		if (esti_n_sets < n_sets) and gen_cat:
+		if (esti_n_sets != n_sets) and gen_cat:
 			raise RuntimeError("#ensembles sizes are different in {} file like {} != {}".format(filename, n_ensembles, n_sets))
 		# assign coord data
 		if gen_cat:
-			set_coord[i_data]=copy.copy(tmp_data[0:pow(args.n_grids,3)*esti_n_sets])
+			set_coord[i_data]=copy.copy(tmp_data)
 		else:
 			#set_coord[i_data]=copy.copy(tmp_data[0:pow(args.n_grids,3)]) # for single ensemble
 			set_coord[i_data]=copy.copy(tmp_data[0:pow(args.n_grids,3)*n_eval_ensembles])
@@ -225,13 +240,15 @@ def make_npy_files_mode(mode, i_block, idx_array, input_prefix, output_prefix):
 		# assign cat and temp data
 		tmp_temp = list_temp[idx_array[i_data]]
 		if gen_cat:
-			if tmp_temp <= args.select1:
+			if tmp_temp == args.select1:
 				set_cat[i_data]=np.repeat(0.,esti_n_sets) # select1
-			elif tmp_temp >= args.select2: 
+			elif tmp_temp == args.select2: 
 				set_cat[i_data]=np.repeat(1.,esti_n_sets) # select2
+			elif tmp_temp == args.select3: 
+				set_cat[i_data]=np.repeat(2.,esti_n_sets) # select3	(p surface)
 			else:
-				raise ValueError("mixed or seperated? see temperature {} != ({} or {})".format(
-					tmp_temp, args.select1, args.select2))
+				raise ValueError("mixed or seperated? see temperature {} != ({}, {}, or {})".format(
+					tmp_temp, args.select1, args.select2, args.select3))
 		set_temp[i_data]=np.repeat(tmp_temp,esti_n_sets)
 	# save compressed npy files
 	if i_block is None:
@@ -269,11 +286,11 @@ if args.n_blocks > 0:
 	print(" collecting block sets for training")
 	for i_block in range(args.n_blocks):
 		print(" ... {}th block ... ".format(i_block))
-		tmp_set = np.append(block_sets1[i_block],block_sets2[i_block])
+		tmp_set = np.append(block_sets1[i_block],np.append(block_sets2[i_block],block_sets3[i_block]))
 		make_npy_files_mode("train", i_block, tmp_set, args.input_prefix, args.out_train)
 else:
 	print(" collecting total (not block) sets for training")
-	tmp_set = np.append(block_sets1,block_sets2)
+	tmp_set = np.append(block_sets1,block_sets2,block_sets3)
 	make_npy_files_mode("train", None, tmp_set, args.input_prefix, args.out_train)
 
 print("Done: make data sets for machine learning")
